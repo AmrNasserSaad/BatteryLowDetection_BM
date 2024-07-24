@@ -1,47 +1,58 @@
 package com.example.batterylowdetection
 
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.painterResource
 import com.example.batterylowdetection.ui.theme.BatteryLowDetectionTheme
 
 class MainActivity : ComponentActivity() {
+
+    private val batteryLowImageState = mutableIntStateOf(R.drawable.battery_full)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             BatteryLowDetectionTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+
+                BatteryStatusImage(imageResId = batteryLowImageState.intValue)
+
+
             }
         }
+        registerReceiver(this, batteryLowImageState)
     }
 }
 
+
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
+fun BatteryStatusImage(imageResId: Int) {
+    Image(
+        painter = painterResource(id = imageResId),
+        contentDescription = null,
+        modifier = Modifier.fillMaxSize()
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    BatteryLowDetectionTheme {
-        Greeting("Android")
+fun registerReceiver(
+    context: Context,
+    batteryLowImageState: MutableState<Int>
+) {
+    val intentFilter = IntentFilter().apply {
+        addAction(Intent.ACTION_BATTERY_LOW)
+        addAction(Intent.ACTION_BATTERY_OKAY)
     }
+    val receiver = BatteryLowReceiver(batteryLowImageState)
+    context.registerReceiver(receiver, intentFilter)
 }
